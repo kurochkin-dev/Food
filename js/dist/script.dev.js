@@ -183,9 +183,50 @@ window.addEventListener('DOMContentLoaded', function () {
     return MenuCard;
   }();
 
-  new MenuCard("img/tabs/vegy.jpg", "vegy", "Меню 'Фитнес'", "Меню 'Фитнес' - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!", 9, '.menu .container').render();
-  new MenuCard("img/tabs/elite.jpg", "elite", "Меню 'Премиум'", "Меню 'Премиум' мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!", 14, '.menu .container').render();
-  new MenuCard("img/tabs/post.jpg", "post", "Меню 'Постное'", "Меню 'Постное' - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.", 21, '.menu .container').render(); // Forms
+  var getResource = function getResource(url) {
+    var res;
+    return regeneratorRuntime.async(function getResource$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.next = 2;
+            return regeneratorRuntime.awrap(fetch(url));
+
+          case 2:
+            res = _context.sent;
+
+            if (res.ok) {
+              _context.next = 5;
+              break;
+            }
+
+            throw new Error("Could not fetch ".concat(url, ", status: ").concat(res.status));
+
+          case 5:
+            _context.next = 7;
+            return regeneratorRuntime.awrap(res.json());
+
+          case 7:
+            return _context.abrupt("return", _context.sent);
+
+          case 8:
+          case "end":
+            return _context.stop();
+        }
+      }
+    });
+  };
+
+  getResource('http://localhost:3000/menu').then(function (data) {
+    data.forEach(function (_ref) {
+      var img = _ref.img,
+          altimg = _ref.altimg,
+          title = _ref.title,
+          descr = _ref.descr,
+          price = _ref.price;
+      new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+    });
+  }); // Forms
 
   var forms = document.querySelectorAll('form');
   var message = {
@@ -194,10 +235,41 @@ window.addEventListener('DOMContentLoaded', function () {
     failure: 'Что-то пошло не так...'
   };
   forms.forEach(function (item) {
-    postData(item);
+    bindPostData(item);
   });
 
-  function postData(form) {
+  var postData = function postData(url, data) {
+    var res;
+    return regeneratorRuntime.async(function postData$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.next = 2;
+            return regeneratorRuntime.awrap(fetch(url, {
+              method: "POST",
+              headers: {
+                'Content-type': 'application/json'
+              },
+              body: data
+            }));
+
+          case 2:
+            res = _context2.sent;
+            _context2.next = 5;
+            return regeneratorRuntime.awrap(res.json());
+
+          case 5:
+            return _context2.abrupt("return", _context2.sent);
+
+          case 6:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    });
+  };
+
+  function bindPostData(form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var statusMessage = document.createElement('img');
@@ -205,19 +277,8 @@ window.addEventListener('DOMContentLoaded', function () {
       statusMessage.style.cssText = "\n                display: block;\n                margin: 0 auto;\n            ";
       form.insertAdjacentElement('afterend', statusMessage);
       var formData = new FormData(form);
-      var object = {};
-      formData.forEach(function (value, key) {
-        object[key] = value;
-      });
-      fetch('server.php', {
-        method: "POST",
-        headers: {
-          'Content-type': 'application/json'
-        },
-        body: JSON.stringify(object)
-      }).then(function (data) {
-        return data.text();
-      }).then(function (data) {
+      var json = JSON.stringify(Object.fromEntries(formData.entries()));
+      postData('http://localhost:3000/requests', json).then(function (data) {
         console.log(data);
         showThanksModal(message.success);
         form.reset();
@@ -245,4 +306,10 @@ window.addEventListener('DOMContentLoaded', function () {
       closeModal();
     }, 4000);
   }
+
+  fetch('http://localhost:3000/menu').then(function (data) {
+    return data.json();
+  }).then(function (res) {
+    return console.log(res);
+  });
 });
