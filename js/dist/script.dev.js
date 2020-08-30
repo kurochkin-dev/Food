@@ -314,6 +314,7 @@ window.addEventListener('DOMContentLoaded', function () {
   }); //Slider
 
   var slides = document.querySelectorAll('.offer__slide'),
+      slider = document.querySelector('.offer__slider'),
       prev = document.querySelector('.offer__slider-prev'),
       next = document.querySelector('.offer__slider-next'),
       total = document.querySelector('#total'),
@@ -339,6 +340,41 @@ window.addEventListener('DOMContentLoaded', function () {
   slides.forEach(function (slide) {
     slide.style.width = width;
   });
+  slider.style.position = 'relative';
+  var indicators = document.createElement('ol'),
+      dots = [];
+  indicators.classList.add('carousel-indicators');
+  indicators.style.cssText = "\n            position: absolute;\n            right: 0;\n            bottom: 0;\n            left: 0;\n            z-index: 15;\n            display: flex;\n            justify-content: center;\n            margin-right: 15%;\n            margin-left: 15%;\n            list-style: none;\n        ";
+  slider.append(indicators);
+
+  for (var i = 0; i < slides.length; i++) {
+    var dot = document.createElement('li');
+    dot.setAttribute('data-slide-to', i + 1);
+    dot.style.cssText = "\n                box-sizing: content-box;\n                flex: 0 1 auto;\n                width: 30px;\n                height: 6px;\n                margin-right: 3px;\n                margin-left: 3px;\n                cursor: pointer;\n                background-color: #fff;\n                background-clip: padding-box;\n                border-top: 10px solid transparent;\n                border-bottom: 10px solid transparent;\n                opacity: .5;\n                transition: opacity .6s ease;\n            ";
+
+    if (i == 0) {
+      dot.style.opacity = 1;
+    }
+
+    indicators.append(dot);
+    dots.push(dot);
+  }
+
+  function slideSwitch() {
+    if (slides.length < 10) {
+      current.textContent = "0".concat(slideIndex);
+    } else {
+      current.textContent = slideIndex;
+    }
+  }
+
+  function dotsIterate() {
+    dots.forEach(function (dot) {
+      return dot.style.opacity = '.5';
+    });
+    dots[slideIndex - 1].style.opacity = 1;
+  }
+
   next.addEventListener('click', function () {
     if (offset == +width.slice(0, width.length - 2) * (slides.length - 1)) {
       offset = 0;
@@ -354,11 +390,8 @@ window.addEventListener('DOMContentLoaded', function () {
       slideIndex++;
     }
 
-    if (slides.length < 10) {
-      current.textContent = "0".concat(slideIndex);
-    } else {
-      current.textContent = slideIndex;
-    }
+    slideSwitch();
+    dotsIterate();
   });
   prev.addEventListener('click', function () {
     if (offset == 0) {
@@ -375,39 +408,17 @@ window.addEventListener('DOMContentLoaded', function () {
       slideIndex--;
     }
 
-    if (slides.length < 10) {
-      current.textContent = "0".concat(slideIndex);
-    } else {
-      current.textContent = slideIndex;
-    }
-  }); // showSlides(slideIndex);
-  // if (slides.length < 10) {
-  //     total.textContent = `0${slides.length}`;
-  // } else {
-  //     total.textContent = slides.length;
-  // }
-  // function showSlides(n) {
-  //     if (n > slides.length) {
-  //         slideIndex = 1;
-  //     }
-  //     if (n < 1) {
-  //         slideIndex = slides.length;
-  //     }
-  //     slides.forEach(item => item.style.display = 'none');
-  //     slides[slideIndex - 1].style.display = 'block';
-  //     if (slides.length < 10) {
-  //         current.textContent = `0${slideIndex}`;
-  //     } else {
-  //         current.textContent = slideIndex;
-  //     }
-  // }
-  // function plusSlides(n) {
-  //     showSlides(slideIndex += n);
-  // }
-  // prev.addEventListener('click', () => {
-  //     plusSlides(-1);
-  // });
-  // next.addEventListener('click', () => {
-  //     plusSlides(1);
-  // });
+    slideSwitch();
+    dotsIterate();
+  });
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function (e) {
+      var slideTo = e.target.getAttribute('data-slide-to');
+      slideIndex = slideTo;
+      offset = +width.slice(0, width.length - 2) * (slideTo - 1);
+      slidesField.style.transform = "translateX(-".concat(offset, "px)");
+      slideSwitch();
+      dotsIterate();
+    });
+  });
 });
